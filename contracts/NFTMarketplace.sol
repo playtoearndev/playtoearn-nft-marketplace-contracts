@@ -45,7 +45,7 @@ contract NFTMarketplace is
         Counters.Counter ownerInfoCount;
         uint256 price;
         uint256 amount;
-        bool isSold;
+        bool isSoldOut;
         bool isUnlisted;
     }
 
@@ -68,7 +68,7 @@ contract NFTMarketplace is
         address seller,
         uint256 price,
         uint256 amount,
-        bool isSold,
+        bool isSoldOut,
         bool isUnlisted
     );
 
@@ -80,7 +80,7 @@ contract NFTMarketplace is
         OwnerInfo ownerInfo,
         uint256 price,
         uint256 amount,
-        bool isSold,
+        bool isSoldOut,
         bool isUnlisted
     );
 
@@ -92,7 +92,7 @@ contract NFTMarketplace is
         OwnerInfo ownerInfo,
         uint256 price,
         uint256 amount,
-        bool isSold,
+        bool isSoldOut,
         bool isUnlisted
     );
 
@@ -103,7 +103,7 @@ contract NFTMarketplace is
         address seller,
         uint256 price,
         uint256 amount,
-        bool isSold,
+        bool isSoldOut,
         bool isUnlisted
     );
 
@@ -177,7 +177,7 @@ contract NFTMarketplace is
         marketItem.seller = msg.sender;
         marketItem.price = price;
         marketItem.amount = amount;
-        marketItem.isSold = false;
+        marketItem.isSoldOut = false;
         marketItem.isUnlisted = false;
 
         itemsSelling.increment();
@@ -216,7 +216,7 @@ contract NFTMarketplace is
             idToMarketItem[itemId].amount >= amount,
             "Insufficient market item amount"
         );
-        require(idToMarketItem[itemId].isSold != true, "This item is sold");
+        require(idToMarketItem[itemId].isSoldOut != true, "This item is sold");
         require(
             idToMarketItem[itemId].isUnlisted != true,
             "This item is unlisted"
@@ -258,7 +258,7 @@ contract NFTMarketplace is
         );
         bool sold = idToMarketItem[itemId].amount == 0;
         if (sold) {
-            idToMarketItem[itemId].isSold = true;
+            idToMarketItem[itemId].isSoldOut = true;
             itemsSelling.decrement();
         }
 
@@ -276,7 +276,7 @@ contract NFTMarketplace is
     }
 
     function unlistMarketItem(uint256 itemId) external nonReentrant {
-        require(idToMarketItem[itemId].isSold != true, "This item is sold");
+        require(idToMarketItem[itemId].isSoldOut != true, "This item is sold");
         require(
             idToMarketItem[itemId].isUnlisted != true,
             "This item is unlisted"
@@ -319,7 +319,7 @@ contract NFTMarketplace is
             ownerInfo,
             idToMarketItem[itemId].price,
             remainingAmount,
-            idToMarketItem[itemId].isSold,
+            idToMarketItem[itemId].isSoldOut,
             true
         );
     }
@@ -329,7 +329,7 @@ contract NFTMarketplace is
         nonReentrant
     {
         require(price > 0, "No item for free here");
-        require(idToMarketItem[itemId].isSold != true, "This item is sold");
+        require(idToMarketItem[itemId].isSoldOut != true, "This item is sold");
         require(
             idToMarketItem[itemId].isUnlisted != true,
             "This item is unlisted"
@@ -348,7 +348,7 @@ contract NFTMarketplace is
             idToMarketItem[itemId].seller,
             idToMarketItem[itemId].price,
             idToMarketItem[itemId].amount,
-            idToMarketItem[itemId].isSold,
+            idToMarketItem[itemId].isSoldOut,
             false
         );
     }
@@ -399,7 +399,7 @@ contract NFTMarketplace is
                     seller: idToMarketItem[i].seller,
                     price: idToMarketItem[i].price,
                     amount: idToMarketItem[i].amount,
-                    isSoldOut: idToMarketItem[i].isSold,
+                    isSoldOut: idToMarketItem[i].isSoldOut,
                     isUnlisted: idToMarketItem[i].isUnlisted
                 });
                 resultLength = resultLength.add(1);
@@ -420,7 +420,7 @@ contract NFTMarketplace is
             seller: idToMarketItem[itemId].seller,
             price: idToMarketItem[itemId].price,
             amount: idToMarketItem[itemId].amount,
-            isSoldOut: idToMarketItem[itemId].isSold,
+            isSoldOut: idToMarketItem[itemId].isSoldOut,
             isUnlisted: idToMarketItem[itemId].isUnlisted
         });
         return marketItemView;
@@ -480,7 +480,7 @@ contract NFTMarketplace is
                             seller: idToMarketItem[i].seller,
                             price: idToMarketItem[i].price,
                             amount: idToMarketItem[i].amount,
-                            isSoldOut: idToMarketItem[i].isSold,
+                            isSoldOut: idToMarketItem[i].isSoldOut,
                             isUnlisted: idToMarketItem[i].isUnlisted
                         });
                         resultLength = resultLength.add(1);
@@ -535,7 +535,7 @@ contract NFTMarketplace is
                     seller: idToMarketItem[i].seller,
                     price: idToMarketItem[i].price,
                     amount: idToMarketItem[i].amount,
-                    isSoldOut: idToMarketItem[i].isSold,
+                    isSoldOut: idToMarketItem[i].isSoldOut,
                     isUnlisted: idToMarketItem[i].isUnlisted
                 });
                 resultLength = resultLength.add(1);
