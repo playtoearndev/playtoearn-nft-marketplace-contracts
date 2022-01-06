@@ -253,7 +253,8 @@ contract NFTMarketplaceUpgradeable is
             idToMarketItem[itemId].amount,
             "0x0"
         );
-
+        
+        idToMarketItem[itemId].amount = 0;
         idToMarketItem[itemId].isUnlisted = true;
 
         _itemsUnlist.increment();
