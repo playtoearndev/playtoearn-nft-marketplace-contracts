@@ -25,7 +25,7 @@ contract NFTMarketplace is
 
     IERC20 private currency;
 
-    uint256 private fee; // The percentage that game creator will get from each sale
+    uint256 private feePercent; // The percentage that game creator will get from each sale
     uint256 private constant FEE_DENOMINATOR = 10**10;
     address private candidateOwner;
     mapping(uint256 => MarketItem) private idToMarketItem;
@@ -107,7 +107,7 @@ contract NFTMarketplace is
         bool isUnlisted
     );
 
-    event SetFee(uint256 fee);
+    event SetFeePercent(uint256 feePercent);
 
     event NewCandidateOwner(address candidateOwner);
 
@@ -117,7 +117,7 @@ contract NFTMarketplace is
         require(listingFee >= 0, "Fee must not be less than 0");
         require(listingFee <= 100, "Fee must not be more than 100");
         currency = _currency;
-        fee = _listingFee;
+        feePercent = _listingFee;
     }
 
     function renounceOwnership() public view override onlyOwner {
@@ -143,15 +143,15 @@ contract NFTMarketplace is
     }
 
     function getFee() public view returns (uint256) {
-        return fee;
+        return feePercent;
     }
 
-    function setFee(uint256 _fee) external onlyOwner {
-        uint256 listingFee = _fee.mul(100).div(FEE_DENOMINATOR);
+    function setFeePercent(uint256 _feePercent) external onlyOwner {
+        uint256 listingFee = _feePercent.mul(100).div(FEE_DENOMINATOR);
         require(listingFee >= 0, "Fee must not be less than 0");
         require(listingFee <= 100, "Fee must not be more than 100");
-        fee = _fee;
-        emit SetFee(listingFee);
+        feePercent = _feePercent;
+        emit SetFeePercent(listingFee);
     }
 
     function getCurrency() public view returns (IERC20) {
@@ -356,7 +356,7 @@ contract NFTMarketplace is
         view
         returns (uint256 _fee)
     {
-        return price.mul(amount).mul(fee).div(FEE_DENOMINATOR);
+        return price.mul(amount).mul(feePercent).div(FEE_DENOMINATOR);
     }
 
     function getMarketItems(uint256 _page, uint256 _limit)
