@@ -286,11 +286,13 @@ contract NFTMarketplace is
             "You are not seller of this item"
         );
 
+        uint256 remainingAmount = idToMarketItem[itemId].amount;
+
         IERC1155(idToMarketItem[itemId].nftContract).safeTransferFrom(
             address(this),
             msg.sender,
             idToMarketItem[itemId].tokenId,
-            idToMarketItem[itemId].amount,
+            remainingAmount,
             "0x0"
         );
         
@@ -316,7 +318,7 @@ contract NFTMarketplace is
             idToMarketItem[itemId].seller,
             ownerInfo,
             idToMarketItem[itemId].price,
-            idToMarketItem[itemId].amount,
+            remainingAmount,
             idToMarketItem[itemId].isSold,
             true
         );
