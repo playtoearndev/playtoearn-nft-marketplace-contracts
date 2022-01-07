@@ -99,7 +99,7 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
     address seller,
     uint256 price,
     uint256 amount,
-    bool isSoldOut,
+    bool isSold,
     bool isUnlisted
   );
 
@@ -163,8 +163,8 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
     require(price > 0, "Cannot sell item for free");
     require(amount > 0, "Amount must be more than 0");
 
-    uint256 itemId = itemIds.current();
     itemIds.increment();
+    uint256 itemId = itemIds.current();
 
     MarketItem storage marketItem = idToMarketItem[itemId];
     marketItem.itemId = itemId;
@@ -339,23 +339,26 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
     return price.mul(amount).mul(feePercent).div(FEE_DENOMINATOR);
   }
 
-  function getMarketItems(uint256 _page, uint256 _limit)
+  function getMarketItems(uint256 page, uint256 limit)
     external
     view
     returns (MarketItemView[] memory)
   {
-    require(_page > 0, "Page must be more than 0");
-    require(_limit > 0, "Limit must be more than 0");
-    require(_limit <= 100, "Max limit reached");
+    require(page > 0, "Page must be more than 0");
+    require(limit > 0, "Limit must be more than 0");
+    require(limit <= 100, "Max limit reached");
 
     // Count item first
     uint256 marketItemCount = 0;
+    uint256 maxI = page == 1 ? limit.mul(page) + 1 : limit.mul(page);
     for (
-      uint256 i = _limit.mul(_page).sub(_limit);
-      i < _limit.mul(_page);
+      uint256 i = page == 1 ? 1 : limit.mul(page).sub(limit);
+      i < maxI;
       i++
     ) {
-      marketItemCount = marketItemCount.add(1);
+      if (idToMarketItem[i].itemId > 0) {
+        marketItemCount = marketItemCount.add(1);
+      }
     }
 
     // Add item to view
@@ -363,21 +366,23 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 resultLength = 0;
 
     for (
-      uint256 i = _limit.mul(_page).sub(_limit);
-      i < _limit.mul(_page);
+      uint256 i = page == 1 ? 1 : limit.mul(page).sub(limit);
+      i < maxI;
       i++
     ) {
-      result[resultLength] = MarketItemView({
-        itemId: idToMarketItem[i].itemId,
-        nftContract: idToMarketItem[i].nftContract,
-        tokenId: idToMarketItem[i].tokenId,
-        seller: idToMarketItem[i].seller,
-        price: idToMarketItem[i].price,
-        amount: idToMarketItem[i].amount,
-        isSoldOut: idToMarketItem[i].isSoldOut,
-        isUnlisted: idToMarketItem[i].isUnlisted
-      });
-      resultLength = resultLength.add(1);
+      if (idToMarketItem[i].itemId > 0) {
+        result[resultLength] = MarketItemView({
+          itemId: idToMarketItem[i].itemId,
+          nftContract: idToMarketItem[i].nftContract,
+          tokenId: idToMarketItem[i].tokenId,
+          seller: idToMarketItem[i].seller,
+          price: idToMarketItem[i].price,
+          amount: idToMarketItem[i].amount,
+          isSoldOut: idToMarketItem[i].isSoldOut,
+          isUnlisted: idToMarketItem[i].isUnlisted
+        });
+        resultLength = resultLength.add(1);
+      }
     }
     return result;
   }
@@ -400,29 +405,32 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
     return marketItemView;
   }
 
-  function fetchPurchasedNFTs(uint256 _page, uint256 _limit)
+  function fetchPurchasedNFTs(uint256 page, uint256 limit)
     public
     view
     returns (MarketItemView[] memory)
   {
-    require(_page > 0, "Page must be more than 0");
-    require(_limit > 0, "Limit must be more than 0");
-    require(_limit <= 100, "Max limit reached");
+    require(page > 0, "Page must be more than 0");
+    require(limit > 0, "Limit must be more than 0");
+    require(limit <= 100, "Max limit reached");
 
     // Count item first
     uint256 marketItemCount = 0;
+    uint256 maxI = page == 1 ? limit.mul(page) + 1 : limit.mul(page);
     for (
-      uint256 i = _limit.mul(_page).sub(_limit);
-      i < _limit.mul(_page);
+      uint256 i = page == 1 ? 1 : limit.mul(page).sub(limit);
+      i < maxI;
       i++
     ) {
-      for (
-        uint256 index = 0;
-        index < idToMarketItem[i].ownerInfoCount.current();
-        index++
-      ) {
-        if (idToMarketItem[i].ownerInfo[index].owner == msg.sender) {
-          marketItemCount = marketItemCount.add(1);
+      if (idToMarketItem[i].itemId > 0) {
+        for (
+          uint256 i2 = 0;
+          i2 < idToMarketItem[i].ownerInfoCount.current();
+          i2++
+        ) {
+          if (idToMarketItem[i].ownerInfo[i2].owner == msg.sender) {
+            marketItemCount = marketItemCount.add(1);
+          }
         }
       }
     }
@@ -432,50 +440,56 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 resultLength = 0;
 
     for (
-      uint256 i = _limit.mul(_page).sub(_limit);
-      i < _limit.mul(_page);
+      uint256 i = page == 1 ? 1 : limit.mul(page).sub(limit);
+      i < maxI;
       i++
     ) {
-      for (
-        uint256 i2 = 0;
-        i2 < idToMarketItem[i].ownerInfoCount.current();
-        i2++
-      ) {
-        if (idToMarketItem[i].ownerInfo[i2].owner == msg.sender) {
-          result[resultLength] = MarketItemView({
-            itemId: idToMarketItem[i].itemId,
-            nftContract: idToMarketItem[i].nftContract,
-            tokenId: idToMarketItem[i].tokenId,
-            seller: idToMarketItem[i].seller,
-            price: idToMarketItem[i].price,
-            amount: idToMarketItem[i].amount,
-            isSoldOut: idToMarketItem[i].isSoldOut,
-            isUnlisted: idToMarketItem[i].isUnlisted
-          });
-          resultLength = resultLength.add(1);
+      if (idToMarketItem[i].itemId > 0) {
+        for (
+          uint256 i2 = 0;
+          i2 < idToMarketItem[i].ownerInfoCount.current();
+          i2++
+        ) {
+          if (idToMarketItem[i].ownerInfo[i2].owner == msg.sender) {
+            result[resultLength] = MarketItemView({
+              itemId: idToMarketItem[i].itemId,
+              nftContract: idToMarketItem[i].nftContract,
+              tokenId: idToMarketItem[i].tokenId,
+              seller: idToMarketItem[i].seller,
+              price: idToMarketItem[i].price,
+              amount: idToMarketItem[i].amount,
+              isSoldOut: idToMarketItem[i].isSoldOut,
+              isUnlisted: idToMarketItem[i].isUnlisted
+            });
+            resultLength = resultLength.add(1);
+          }
         }
       }
     }
     return result;
   }
 
-  function fetchCreateNFTs(uint256 _page, uint256 _limit)
+  function fetchCreateNFTs(uint256 page, uint256 limit)
     public
     view
     returns (MarketItemView[] memory)
   {
-    require(_page > 0, "Page must be more than 0");
-    require(_limit > 0, "Limit must be more than 0");
-    require(_limit <= 100, "Max limit reached");
+    require(page > 0, "Page must be more than 0");
+    require(limit > 0, "Limit must be more than 0");
+    require(limit <= 100, "Max limit reached");
 
     // Count item first
     uint256 marketItemCount = 0;
+    uint256 maxI = page == 1 ? limit.mul(page) + 1 : limit.mul(page);
+
     for (
-      uint256 i = _limit.mul(_page).sub(_limit);
-      i < _limit.mul(_page);
+      uint256 i = page == 1 ? 1 : limit.mul(page).sub(limit);
+      i < maxI;
       i++
     ) {
-      if (idToMarketItem[i].seller == msg.sender) {
+      if (
+        idToMarketItem[i].itemId > 0 && idToMarketItem[i].seller == msg.sender
+      ) {
         marketItemCount = marketItemCount.add(1);
       }
     }
@@ -485,11 +499,13 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 resultLength = 0;
 
     for (
-      uint256 i = _limit.mul(_page).sub(_limit);
-      i < _limit.mul(_page);
+      uint256 i = page == 1 ? 1 : limit.mul(page).sub(limit);
+      i < maxI;
       i++
     ) {
-      if (idToMarketItem[i].seller == msg.sender) {
+      if (
+        idToMarketItem[i].itemId > 0 && idToMarketItem[i].seller == msg.sender
+      ) {
         result[resultLength] = MarketItemView({
           itemId: idToMarketItem[i].itemId,
           nftContract: idToMarketItem[i].nftContract,
