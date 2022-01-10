@@ -284,7 +284,7 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
 
     OwnerInfo memory ownerInfo = OwnerInfo(
       msg.sender,
-      idToMarketItem[itemId].amount,
+      remainingAmount,
       block.number
     );
     idToMarketItem[itemId].ownerInfoCount.increment();
@@ -350,10 +350,9 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
 
     // Count item first
     uint256 marketItemCount = 0;
-    uint256 maxI = page == 1 ? limit.mul(page) + 1 : limit.mul(page);
     for (
-      uint256 i = page == 1 ? 1 : limit.mul(page).sub(limit);
-      i < maxI;
+      uint256 i = limit.mul(page).sub(limit).add(1);
+      i <= limit.mul(page);
       i++
     ) {
       if (idToMarketItem[i].itemId > 0) {
@@ -366,8 +365,8 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 resultLength = 0;
 
     for (
-      uint256 i = page == 1 ? 1 : limit.mul(page).sub(limit);
-      i < maxI;
+      uint256 i = limit.mul(page).sub(limit).add(1);
+      i <= limit.mul(page);
       i++
     ) {
       if (idToMarketItem[i].itemId > 0) {
@@ -416,10 +415,9 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
 
     // Count item first
     uint256 marketItemCount = 0;
-    uint256 maxI = page == 1 ? limit.mul(page) + 1 : limit.mul(page);
     for (
-      uint256 i = page == 1 ? 1 : limit.mul(page).sub(limit);
-      i < maxI;
+      uint256 i = limit.mul(page).sub(limit).add(1);
+      i <= limit.mul(page);
       i++
     ) {
       if (idToMarketItem[i].itemId > 0) {
@@ -440,8 +438,8 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 resultLength = 0;
 
     for (
-      uint256 i = page == 1 ? 1 : limit.mul(page).sub(limit);
-      i < maxI;
+      uint256 i = limit.mul(page).sub(limit).add(1);
+      i <= limit.mul(page);
       i++
     ) {
       if (idToMarketItem[i].itemId > 0) {
@@ -480,11 +478,9 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
 
     // Count item first
     uint256 marketItemCount = 0;
-    uint256 maxI = page == 1 ? limit.mul(page) + 1 : limit.mul(page);
-
     for (
-      uint256 i = page == 1 ? 1 : limit.mul(page).sub(limit);
-      i < maxI;
+      uint256 i = limit.mul(page).sub(limit).add(1);
+      i <= limit.mul(page);
       i++
     ) {
       if (
@@ -499,8 +495,8 @@ contract NFTMarketplace is Ownable, ReentrancyGuard, ERC1155Holder {
     uint256 resultLength = 0;
 
     for (
-      uint256 i = page == 1 ? 1 : limit.mul(page).sub(limit);
-      i < maxI;
+      uint256 i = limit.mul(page).sub(limit).add(1);
+      i <= limit.mul(page);
       i++
     ) {
       if (
